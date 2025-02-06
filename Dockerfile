@@ -3,4 +3,6 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 COPY app/ app/
-CMD ["python", "-m", "app.lambda_handler"]
+
+ENTRYPOINT [ "/usr/bin/python3.8", "-m", "awslambdaric" ]
+CMD [ "lambda_function.lambda_handler" ]
