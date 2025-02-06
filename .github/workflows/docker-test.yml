@@ -1,0 +1,47 @@
+name: Docker API Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-api:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # This is required for requesting the JWT
+      contents: read # This is required for actions/checkout
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker image
+        run: |
+          docker build -t my-boto3-api:latest .
+
+      - name: Run Docker container
+        run: |
+          docker run -d -p 8000:8000 --name my-boto3-api my-boto3-api:latest
+          sleep 5  # Give some time for the API to start
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest requests boto3
+
+      - name: Run API tests
+        run: |
+          pytest tests/
+
+      - name: Stop and remove the container
+        if: always()
+        run: |
+          docker stop my-boto3-api
+          docker rm my-boto3-api
